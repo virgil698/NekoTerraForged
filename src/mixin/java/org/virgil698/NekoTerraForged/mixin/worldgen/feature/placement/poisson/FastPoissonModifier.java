@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
@@ -27,21 +28,21 @@ import org.virgil698.NekoTerraForged.mixin.worldgen.tile.Tile;
  * 移植自 ReTerraForged
  */
 public class FastPoissonModifier extends PlacementModifier {
-    public static final Codec<FastPoissonModifier> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        Codec.INT.fieldOf("radius").forGetter((p) -> p.radius),
-        Codec.FLOAT.fieldOf("scale").forGetter((p) -> p.scale),
-        Codec.FLOAT.fieldOf("jitter").forGetter((p) -> p.jitter),
-        Codec.FLOAT.fieldOf("biome_fade").forGetter((p) -> p.biomeFade),
-        Codec.INT.fieldOf("density_variance_scale").forGetter((p) -> p.densityVariationScale),
-        Codec.FLOAT.fieldOf("density_variation").forGetter((p) -> p.densityVariation)
+    public static final MapCodec<FastPoissonModifier> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+        Codec.INT.fieldOf("radius").forGetter(p -> p.radius),
+        Codec.FLOAT.fieldOf("scale").forGetter(p -> p.scale),
+        Codec.FLOAT.fieldOf("jitter").forGetter(p -> p.jitter),
+        Codec.FLOAT.fieldOf("biome_fade").forGetter(p -> p.biomeFade),
+        Codec.INT.fieldOf("density_variance_scale").forGetter(p -> p.densityVariationScale),
+        Codec.FLOAT.fieldOf("density_variation").forGetter(p -> p.densityVariation)
     ).apply(instance, FastPoissonModifier::new));
-    
-    protected int radius;
-    protected float scale;
-    protected float jitter;
-    protected float biomeFade;
-    protected int densityVariationScale;
-    protected float densityVariation;
+
+    protected final int radius;
+    protected final float scale;
+    protected final float jitter;
+    protected final float biomeFade;
+    protected final int densityVariationScale;
+    protected final float densityVariation;
     
     public FastPoissonModifier(
         int radius,

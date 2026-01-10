@@ -4,6 +4,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
@@ -15,18 +16,19 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 /**
  * 旧版额外计数修改器
  * 移植自 ReTerraForged
+ * @deprecated 使用 CountPlacement 代替
  */
 @Deprecated
 public class LegacyCountExtraModifier extends PlacementModifier {
-    public static final Codec<LegacyCountExtraModifier> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        Codec.INT.fieldOf("count").forGetter((p) -> p.count),
-        Codec.FLOAT.fieldOf("extra_chance").forGetter((p) -> p.extraChance),
-        Codec.INT.fieldOf("extra_count").forGetter((p) -> p.extraCount)
+    public static final MapCodec<LegacyCountExtraModifier> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+        Codec.INT.fieldOf("count").forGetter(p -> p.count),
+        Codec.FLOAT.fieldOf("extra_chance").forGetter(p -> p.extraChance),
+        Codec.INT.fieldOf("extra_count").forGetter(p -> p.extraCount)
     ).apply(instance, LegacyCountExtraModifier::new));
 
-    private int count;
-    private float extraChance;
-    private int extraCount;
+    private final int count;
+    private final float extraChance;
+    private final int extraCount;
     
     public LegacyCountExtraModifier(int count, float extraChance, int extraCount) {
         this.count = count;

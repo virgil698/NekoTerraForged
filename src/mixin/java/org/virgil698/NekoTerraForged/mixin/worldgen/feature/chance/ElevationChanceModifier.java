@@ -3,6 +3,7 @@ package org.virgil698.NekoTerraForged.mixin.worldgen.feature.chance;
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
@@ -15,10 +16,11 @@ import org.virgil698.NekoTerraForged.mixin.worldgen.tile.Tile;
 
 /**
  * 高度概率修改器
+ * 根据地形高度调整特征放置概率
  * 移植自 ReTerraForged
  */
 public class ElevationChanceModifier extends RangeChanceModifier {
-    public static final Codec<ElevationChanceModifier> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final MapCodec<ElevationChanceModifier> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Codec.FLOAT.fieldOf("from").forGetter((o) -> o.from),
         Codec.FLOAT.fieldOf("to").forGetter((o) -> o.to),
         Codec.BOOL.fieldOf("exclusive").forGetter((o) -> o.exclusive)
@@ -29,7 +31,7 @@ public class ElevationChanceModifier extends RangeChanceModifier {
     }
 
     @Override
-    public Codec<ElevationChanceModifier> codec() {
+    public MapCodec<ElevationChanceModifier> codec() {
         return CODEC;
     }
 

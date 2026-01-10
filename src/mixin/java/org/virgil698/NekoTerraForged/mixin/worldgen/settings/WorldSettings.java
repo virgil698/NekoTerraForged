@@ -1,5 +1,6 @@
 package org.virgil698.NekoTerraForged.mixin.worldgen.settings;
 
+import org.virgil698.NekoTerraForged.mixin.worldgen.continent.ContinentType;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.function.DistanceFunction;
 
 /**
@@ -11,6 +12,7 @@ public class WorldSettings {
     public int continentScale = 3000;
     public float continentJitter = 0.7F;
     public DistanceFunction continentShape = DistanceFunction.EUCLIDEAN;
+    public ContinentType continentType = ContinentType.MULTI;
     
     // 控制点
     public float deepOcean = 0.1F;

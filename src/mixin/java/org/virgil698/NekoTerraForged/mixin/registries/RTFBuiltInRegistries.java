@@ -1,6 +1,7 @@
 package org.virgil698.NekoTerraForged.mixin.registries;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.WritableRegistry;
@@ -31,10 +32,10 @@ public class RTFBuiltInRegistries {
     public static final Registry<Codec<? extends Noise>> NOISE_TYPE = createRegistry(RTFRegistryKeys.NOISE_TYPE);
     public static final Registry<Codec<? extends Domain>> DOMAIN_TYPE = createRegistry(RTFRegistryKeys.DOMAIN_TYPE);
     public static final Registry<Codec<? extends CurveFunction>> CURVE_FUNCTION_TYPE = createRegistry(RTFRegistryKeys.CURVE_FUNCTION_TYPE);
-    public static final Registry<Codec<? extends ChanceModifier>> CHANCE_MODIFIER_TYPE = createRegistry(RTFRegistryKeys.CHANCE_MODIFIER_TYPE);
+    public static final Registry<MapCodec<? extends ChanceModifier>> CHANCE_MODIFIER_TYPE = createRegistry(RTFRegistryKeys.CHANCE_MODIFIER_TYPE);
     public static final Registry<Codec<? extends TemplatePlacement<?>>> TEMPLATE_PLACEMENT_TYPE = createRegistry(RTFRegistryKeys.TEMPLATE_PLACEMENT_TYPE);
     public static final Registry<Codec<? extends TemplateDecorator<?>>> TEMPLATE_DECORATOR_TYPE = createRegistry(RTFRegistryKeys.TEMPLATE_DECORATOR_TYPE);
-    public static final Registry<Codec<? extends BiomeModifier>> BIOME_MODIFIER_TYPE = createRegistry(RTFRegistryKeys.BIOME_MODIFIER_TYPE);
+    public static final Registry<MapCodec<? extends BiomeModifier>> BIOME_MODIFIER_TYPE = createRegistry(RTFRegistryKeys.BIOME_MODIFIER_TYPE);
     public static final Registry<Codec<? extends StructureRule>> STRUCTURE_RULE_TYPE = createRegistry(RTFRegistryKeys.STRUCTURE_RULE_TYPE);
 
     /**

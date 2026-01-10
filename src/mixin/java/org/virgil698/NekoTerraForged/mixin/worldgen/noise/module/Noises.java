@@ -1,5 +1,6 @@
 package org.virgil698.NekoTerraForged.mixin.worldgen.noise.module;
 
+import org.virgil698.NekoTerraForged.mixin.worldgen.cell.CellField;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.domain.Domain;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.domain.Domains;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.function.CellFunction;
@@ -337,6 +338,80 @@ public final class Noises {
     // ==================== Blend 噪声 ====================
     public static Noise blend(Noise selector, Noise lower, Noise upper, float blendLower, float blendUpper) {
         return new BlendNoise(selector, lower, upper, blendLower, blendUpper);
+    }
+
+    // ==================== Threshold 噪声 ====================
+    public static Noise threshold(Noise selector, Noise lower, Noise upper, float threshold) {
+        return new ThresholdNoise(selector, lower, upper, threshold);
+    }
+
+    private static class ThresholdNoise implements Noise {
+        private final Noise selector;
+        private final Noise lower;
+        private final Noise upper;
+        private final float threshold;
+
+        ThresholdNoise(Noise selector, Noise lower, Noise upper, float threshold) {
+            this.selector = selector;
+            this.lower = lower;
+            this.upper = upper;
+            this.threshold = threshold;
+        }
+
+        @Override
+        public float compute(float x, float z, int seed) {
+            float select = selector.compute(x, z, seed);
+            if (select < threshold) {
+                return lower.compute(x, z, seed);
+            }
+            return upper.compute(x, z, seed);
+        }
+
+        @Override
+        public float minValue() {
+            return Math.min(lower.minValue(), upper.minValue());
+        }
+
+        @Override
+        public float maxValue() {
+            return Math.max(lower.maxValue(), upper.maxValue());
+        }
+
+        @Override
+        public Noise mapAll(Visitor visitor) {
+            return visitor.apply(new ThresholdNoise(
+                selector.mapAll(visitor),
+                lower.mapAll(visitor),
+                upper.mapAll(visitor),
+                threshold
+            ));
+        }
+    }
+
+    // ==================== Cell 噪声 (用于从 Cell 读取字段) ====================
+    public static Noise cell(CellField field) {
+        return new CellNoise(field);
+    }
+
+    /**
+     * Cell 噪声 - 用于从 Cell 中读取字段值
+     * 这是一个标记类，实际值由 CellSampler.Provider 在运行时提供
+     */
+    public static class CellNoise implements MappedNoise.Marker {
+        private final CellField field;
+
+        public CellNoise(CellField field) {
+            this.field = field;
+        }
+
+        public CellField field() {
+            return field;
+        }
+
+        @Override
+        public Noise mapAll(Visitor visitor) {
+            return visitor.apply(this);
+        }
     }
 
     private static class BlendNoise implements Noise {

@@ -22,6 +22,7 @@ public class RTFFeatures {
     public static final Feature<ChanceFeature.Config> CHANCE = new ChanceFeature(ChanceFeature.Config.CODEC);
     public static final Feature<ErodeSnowFeature.Config> ERODE_SNOW = new ErodeSnowFeature(ErodeSnowFeature.Config.CODEC);
     public static final Feature<SwampSurfaceFeature.Config> SWAMP_SURFACE = new SwampSurfaceFeature(SwampSurfaceFeature.Config.CODEC);
+    public static final Feature<ScreeFeature.Config> SCREE = new ScreeFeature(ScreeFeature.Config.CODEC);
 
     private static boolean registered = false;
 
@@ -40,6 +41,7 @@ public class RTFFeatures {
         register("chance", CHANCE);
         register("erode_snow", ERODE_SNOW);
         register("swamp_surface", SWAMP_SURFACE);
+        register("scree", SCREE);
     }
 
     /**

@@ -6,7 +6,7 @@ import org.virgil698.NekoTerraForged.mixin.worldgen.noise.NoiseUtil;
  * 插值函数枚举
  * 移植自 ReTerraForged
  */
-public enum Interpolation {
+public enum Interpolation implements CurveFunction {
     LINEAR {
         @Override
         public float apply(float f) {
@@ -26,5 +26,6 @@ public enum Interpolation {
         }
     };
 
+    @Override
     public abstract float apply(float f);
 }

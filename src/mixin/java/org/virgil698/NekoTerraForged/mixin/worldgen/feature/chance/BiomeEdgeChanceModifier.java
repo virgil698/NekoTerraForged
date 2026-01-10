@@ -3,6 +3,7 @@ package org.virgil698.NekoTerraForged.mixin.worldgen.feature.chance;
 import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
@@ -15,10 +16,11 @@ import org.virgil698.NekoTerraForged.mixin.worldgen.tile.Tile;
 
 /**
  * 生物群系边缘概率修改器
+ * 根据生物群系边缘距离调整特征放置概率
  * 移植自 ReTerraForged
  */
 public class BiomeEdgeChanceModifier extends RangeChanceModifier {
-    public static final Codec<BiomeEdgeChanceModifier> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final MapCodec<BiomeEdgeChanceModifier> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
         Codec.FLOAT.fieldOf("from").forGetter((o) -> o.from),
         Codec.FLOAT.fieldOf("to").forGetter((o) -> o.to),
         Codec.BOOL.fieldOf("exclusive").forGetter((o) -> o.exclusive)
@@ -29,7 +31,7 @@ public class BiomeEdgeChanceModifier extends RangeChanceModifier {
     }
 
     @Override
-    public Codec<BiomeEdgeChanceModifier> codec() {
+    public MapCodec<BiomeEdgeChanceModifier> codec() {
         return CODEC;
     }
 

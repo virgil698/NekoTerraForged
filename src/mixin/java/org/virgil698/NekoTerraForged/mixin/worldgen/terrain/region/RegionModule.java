@@ -9,11 +9,13 @@ import org.virgil698.NekoTerraForged.mixin.worldgen.noise.domain.Domain;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.domain.Domains;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.function.DistanceFunction;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.function.EdgeFunction;
+import org.virgil698.NekoTerraForged.mixin.worldgen.noise.module.Noise;
 import org.virgil698.NekoTerraForged.mixin.worldgen.noise.module.Noises;
 import org.virgil698.NekoTerraForged.mixin.worldgen.util.PosUtil;
 
 /**
- * 区域模块
+ * 区域模块 - 负责将世界划分为不同的地形区域
+ * 使用 Worley 噪声算法生成 Voronoi 单元格，每个单元格代表一个地形区域
  * 移植自 ReTerraForged
  */
 public class RegionModule implements CellPopulator {
@@ -31,6 +33,15 @@ public class RegionModule implements CellPopulator {
         this.edgeRange = this.edgeMax - this.edgeMin;
         this.frequency = 1.0F / regionConfig.scale();
         this.warp = Domains.domain(regionConfig.warpX(), regionConfig.warpZ(), Noises.constant(regionConfig.warpStrength()));
+    }
+
+    private RegionModule(int seed, float frequency, float edgeMin, float edgeMax, float edgeRange, Domain warp) {
+        this.seed = seed;
+        this.frequency = frequency;
+        this.edgeMin = edgeMin;
+        this.edgeMax = edgeMax;
+        this.edgeRange = edgeRange;
+        this.warp = warp;
     }
 
     @Override
@@ -101,5 +112,10 @@ public class RegionModule implements CellPopulator {
     private static float cellValue(int seed, int cellX, int cellY) {
         float value = NoiseUtil.valCoord2D(seed, cellX, cellY);
         return NoiseUtil.map(value, -1.0F, 1.0F, 2.0F);
+    }
+
+    @Override
+    public CellPopulator mapNoise(Noise.Visitor visitor) {
+        return new RegionModule(this.seed, this.frequency, this.edgeMin, this.edgeMax, this.edgeRange, this.warp.mapAll(visitor));
     }
 }
