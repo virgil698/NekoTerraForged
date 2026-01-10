@@ -1,0 +1,62 @@
+package org.virgil698.NekoTerraForged.mixin.worldgen.tile.filter;
+
+import org.virgil698.NekoTerraForged.mixin.worldgen.cell.Cell;
+import org.virgil698.NekoTerraForged.mixin.worldgen.noise.NoiseUtil;
+
+/**
+ * 修改器接口，用于根据高度等因素调整过滤强度
+ * 移植自 ReTerraForged
+ */
+public interface Modifier {
+    /**
+     * 获取值修改器
+     * @param value 输入值
+     * @return 修改后的值
+     */
+    float getValueModifier(float value);
+
+    /**
+     * 应用修改器到 Cell
+     */
+    default float modify(Cell cell, float value) {
+        float strengthModifier = 1.0F;
+        float erosionModifier = cell.terrain.erosionModifier();
+        if (erosionModifier != 1.0F) {
+            float alpha = NoiseUtil.map(cell.terrainRegionEdge, 0.0F, 0.15F, 0.15F);
+            strengthModifier = NoiseUtil.lerp(1.0F, erosionModifier, alpha);
+        }
+        if (cell.riverDistance < 0.1F) {
+            strengthModifier *= NoiseUtil.map(cell.riverDistance, 0.002F, 0.1F, 0.098F);
+        }
+        return this.getValueModifier(cell.height) * strengthModifier * value;
+    }
+
+    /**
+     * 反转修改器
+     */
+    default Modifier invert() {
+        return v -> 1.0F - this.getValueModifier(v);
+    }
+
+    /**
+     * 创建范围修改器
+     */
+    static Modifier range(float minValue, float maxValue) {
+        return new Modifier() {
+            private final float min = minValue;
+            private final float max = maxValue;
+            private final float range = maxValue - minValue;
+
+            @Override
+            public float getValueModifier(float value) {
+                if (value > this.max) {
+                    return 1.0F;
+                }
+                if (value < this.min) {
+                    return 0.0F;
+                }
+                return (value - this.min) / this.range;
+            }
+        };
+    }
+}

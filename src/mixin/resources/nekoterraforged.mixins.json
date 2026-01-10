@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8.7",
+  "package": "org.virgil698.NekoTerraForged.mixin.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "target": "@env(PREINIT)",
+  "mixins": [
+    "MixinRandomState",
+    "MixinNoiseBasedChunkGenerator",
+    "MixinClimateSampler",
+    "MixinMinecraftServer",
+    "MixinChunkMap",
+    "MixinNoiseChunk",
+    "MixinSurfaceContext",
+    "MixinSurfaceSystem",
+    "MixinBiomeConditionSource",
+    "MixinStructure",
+    "MixinSpawnFinder",
+    "MixinChunkStatusTasks",
+    "MixinUtil"
+  ],
+  "plugin": "org.virgil698.NekoTerraForged.mixin.NekoTerraForgedMixinConfigPlugin"
+}

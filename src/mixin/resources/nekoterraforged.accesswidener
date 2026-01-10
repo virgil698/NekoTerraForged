@@ -1,0 +1,51 @@
+accessWidener v2 named
+
+# RandomState fields
+accessible field net/minecraft/world/level/levelgen/RandomState sampler Lnet/minecraft/world/level/biome/Climate$Sampler;
+accessible field net/minecraft/world/level/levelgen/RandomState surfaceSystem Lnet/minecraft/world/level/levelgen/SurfaceSystem;
+accessible field net/minecraft/world/level/levelgen/RandomState random Lnet/minecraft/world/level/levelgen/PositionalRandomFactory;
+
+# NoiseRouter
+accessible method net/minecraft/world/level/levelgen/NoiseRouter mapAll (Lnet/minecraft/world/level/levelgen/DensityFunction$Visitor;)Lnet/minecraft/world/level/levelgen/NoiseRouter;
+
+# NoiseChunk fields
+accessible field net/minecraft/world/level/levelgen/NoiseChunk cellCountY I
+accessible field net/minecraft/world/level/levelgen/NoiseChunk cellHeight I
+accessible field net/minecraft/world/level/levelgen/NoiseChunk cellCountXZ I
+accessible field net/minecraft/world/level/levelgen/NoiseChunk firstNoiseX I
+accessible field net/minecraft/world/level/levelgen/NoiseChunk firstNoiseZ I
+
+# NoiseChunk wrapNew method
+accessible method net/minecraft/world/level/levelgen/NoiseChunk wrapNew (Lnet/minecraft/world/level/levelgen/DensityFunction;)Lnet/minecraft/world/level/levelgen/DensityFunction;
+
+# Climate.SpawnFinder
+accessible class net/minecraft/world/level/biome/Climate$SpawnFinder
+accessible class net/minecraft/world/level/biome/Climate$SpawnFinder$Result
+
+# SurfaceRules.Context fields
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context chunk Lnet/minecraft/world/level/chunk/ChunkAccess;
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context blockX I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context blockZ I
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$Context lastUpdateXZ J
+
+# SurfaceRules.LazyCondition and LazyXZCondition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$LazyCondition
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$LazyXZCondition
+extendable class net/minecraft/world/level/levelgen/SurfaceRules$LazyXZCondition
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$LazyCondition context Lnet/minecraft/world/level/levelgen/SurfaceRules$Context;
+
+# SurfaceRules.BiomeConditionSource
+accessible class net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource
+accessible field net/minecraft/world/level/levelgen/SurfaceRules$BiomeConditionSource biomeNameTest Ljava/util/function/Predicate;
+
+# Structure.isValidBiome
+accessible method net/minecraft/world/level/levelgen/structure/Structure isValidBiome (Lnet/minecraft/world/level/levelgen/structure/Structure$GenerationStub;Lnet/minecraft/world/level/levelgen/structure/Structure$GenerationContext;)Z
+
+# NoiseSettings
+accessible method net/minecraft/world/level/levelgen/NoiseSettings height ()I
+
+# Climate.ParameterPoint.fitness - needed for spawn search
+accessible method net/minecraft/world/level/biome/Climate$ParameterPoint fitness (Lnet/minecraft/world/level/biome/Climate$TargetPoint;)J
+
+# Climate.TargetPoint.toParameterArray - needed for spawn search
+accessible method net/minecraft/world/level/biome/Climate$TargetPoint toParameterArray ()[J

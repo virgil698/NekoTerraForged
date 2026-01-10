@@ -14,39 +14,24 @@ plugins {
 }
 
 // TODO: change this to your plugin group
-group = "com.example"
+group = "org.virgil698"
 // TODO: change this to your plugin version
 version = "1.0.0-SNAPSHOT"
 
 // please check https://docs.papermc.io/paper/dev/plugin-yml/ and https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
 val pluginJson = leavesPluginJson {
     // INFO: name and version defaults to project name and version
-    // TODO: change this to your main class
-    main = "com.example.plugin.TemplatePlugin"
-    // TODO: change this to your name
-    authors.add("YourName")
-    // TODO: change this to your plugin description
-    description = "leaves template plugin"
-    // TODO: support or not is decided by you
+    main = "org.virgil698.NekoTerraForged.NekoTerraForgedPlugin"
+    authors.addAll(listOf("virgil698", "AnkiSama"))
+    description = "NekoTerraForged - RTF terrain generation for Leaves"
     foliaSupported = false
     apiVersion = libs.versions.leavesApi.extractMCVersion()
-    // TODO: if your logic can work without mixin, can use `features.optional.add("mixin")`
     features.required.add("mixin")
     mixin.apply {
-        // TODO: replace this to your mixin package name
-        packageName = "com.example.plugin.mixin"
-        // TODO: replace this to your access widener file name
-        accessWidener = "leaves-template-plugin.accesswidener"
-        // TODO: replace this to your mixin configs name
-        mixins.add("leaves-template-plugin.mixins.json")
+        packageName = "org.virgil698.NekoTerraForged.mixin"
+        accessWidener = "nekoterraforged.accesswidener"
+        mixins.add("nekoterraforged.mixins.json")
     }
-    // TODO: add your plugin dependencies
-    // please check https://docs.papermc.io/paper/dev/getting-started/paper-plugins/#dependency-declaration
-    // e.g.,
-    // dependencies.bootstrap(
-    //     name = "some deps",
-    //     load = LeavesPluginJson.Load.BEFORE // or AFTER
-    // )
 }
 
 val runServerPlugins = runPaper.downloadPluginsSpec {
@@ -112,6 +97,10 @@ dependencies {
             compileOnly(libs.mixinExtras)
             compileOnly(libs.spongeMixin)
             compileOnly(libs.mixinCondition)
+            compileOnly("org.jetbrains:annotations:24.1.0")
+            // Mojang libraries for worldgen code
+            compileOnly("com.mojang:datafixerupper:8.0.16")
+            compileOnly("it.unimi.dsi:fastutil:8.5.15")
             accessWiden(compileOnly(files(getMappedServerJar()))!!)
         }
     }
