@@ -15,6 +15,7 @@ public class Levels {
     public final float ground;
     public final float water;
     private final float elevationRange;
+    public final int terrainScaler;
 
     public Levels(float terrainScale, int seaLevel) {
         this(terrainScale, seaLevel, -64);
@@ -31,6 +32,8 @@ public class Levels {
         this.ground = div(this.groundY, this.worldHeight);
         this.water = div(this.waterY, this.worldHeight);
         this.elevationRange = 1.0F - this.water;
+        // terrainScaler 用于 ClampToNearestUnit，默认值 128
+        this.terrainScaler = Math.max(1, (int) (128 * terrainScale));
     }
 
     public int scale(float value) {

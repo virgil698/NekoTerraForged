@@ -56,6 +56,9 @@ public class RTFBridgeImpl implements RTFBridge {
     public RTFBridgeImpl() {
         // 默认配置路径
         this.configPath = Paths.get("plugins", "NekoTerraForged", "config.json");
+        // 加载配置（配置文件由插件层负责生成）
+        getOrCreateConfig();
+        System.out.println("[NekoTerraForged] Config initialized at: " + configPath.toAbsolutePath());
     }
     
     /**

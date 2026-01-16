@@ -1,5 +1,7 @@
 package org.virgil698.NekoTerraForged.mixin.mixins;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -9,6 +11,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridge;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridgeManager;
+import org.virgil698.NekoTerraForged.mixin.worldgen.cell.CellField;
+import org.virgil698.NekoTerraForged.mixin.worldgen.densityfunction.CellSampler;
+import org.virgil698.NekoTerraForged.mixin.worldgen.densityfunction.NTFDensityFunctionVisitor;
+
+import com.google.common.base.Suppliers;
 
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.RegistryAccess;
@@ -45,7 +52,7 @@ public class MixinRandomState {
     private long ntf$seed;
     
     @Unique
-    private boolean ntf$hasContext;
+    private final AtomicBoolean ntf$hasContext = new AtomicBoolean(false);
     
     @Unique
     private DensityFunction.Visitor ntf$densityFunctionWrapper;
@@ -65,45 +72,88 @@ public class MixinRandomState {
     private NoiseRouter ntf$onInit(NoiseRouter router, DensityFunction.Visitor visitor, 
             NoiseGeneratorSettings settings, HolderGetter<NormalNoise.NoiseParameters> params, final long seed) {
         this.ntf$seed = seed;
-        this.ntf$hasContext = false;
         
-        this.ntf$densityFunctionWrapper = new DensityFunction.Visitor() {
-            @Override
-            public DensityFunction apply(DensityFunction function) {
-                String className = function.getClass().getName();
-                
-                // 检查是否是 NoiseSampler.Marker
-                if (className.contains("NoiseSampler$Marker")) {
-                    RTFBridge bridge = RTFBridgeManager.INSTANCE.getBridge();
-                    if (bridge != null) {
-                        Object noiseSampler = bridge.createNoiseSampler(function, (int) seed);
-                        if (noiseSampler instanceof DensityFunction df) {
-                            return df;
-                        }
-                    }
-                }
-                
-                // 检查是否是 CellSampler.Marker
-                if (className.contains("CellSampler$Marker")) {
-                    MixinRandomState.this.ntf$hasContext = true;
-                    RTFBridge bridge = RTFBridgeManager.INSTANCE.getBridge();
-                    if (bridge != null) {
-                        Object cellSampler = bridge.createCellSampler(function);
-                        if (cellSampler instanceof DensityFunction df) {
-                            return df;
-                        }
-                    }
-                }
-                
-                return visitor.apply(function);
-            }
-
-            @Override
-            public DensityFunction.NoiseHolder visitNoise(DensityFunction.NoiseHolder noiseHolder) {
-                return visitor.visitNoise(noiseHolder);
-            }
-        };
-        return router.mapAll(this.ntf$densityFunctionWrapper);
+        // 检查是否启用 RTF
+        RTFBridge bridge = RTFBridgeManager.INSTANCE.getBridge();
+        boolean rtfEnabled = bridge != null && bridge.getConfig("worldgen.enabled", true);
+        
+        if (rtfEnabled) {
+            // 强制设置 hasContext 为 true，启用 RTF 地形生成
+            this.ntf$hasContext.set(true);
+            System.out.println("[NekoTerraForged] RTF terrain generation enabled for seed: " + seed);
+        } else {
+            this.ntf$hasContext.set(false);
+        }
+        
+        // 使用独立的类文件代替匿名/内部类，避免 Mixin 类加载问题
+        this.ntf$densityFunctionWrapper = new NTFDensityFunctionVisitor(visitor, seed, this.ntf$hasContext);
+        
+        // 先应用 visitor 转换
+        NoiseRouter mappedRouter = router.mapAll(this.ntf$densityFunctionWrapper);
+        
+        // 如果启用了 RTF，替换 temperature 和 vegetation 为 CellSampler
+        if (rtfEnabled && bridge != null) {
+            mappedRouter = ntf$replaceClimateFields(mappedRouter, bridge);
+        }
+        
+        return mappedRouter;
+    }
+    
+    /**
+     * 替换 NoiseRouter 中的 temperature 和 vegetation 字段为 RTF 的 CellSampler
+     */
+    @Unique
+    private NoiseRouter ntf$replaceClimateFields(NoiseRouter router, RTFBridge bridge) {
+        try {
+            // 创建 temperature CellSampler (使用 Cell 的 temperature 字段)
+            CellSampler.Marker tempMarker = new CellSampler.Marker(CellField.TEMPERATURE);
+            Object tempSampler = bridge.createCellSampler(tempMarker);
+            DensityFunction temperature = tempSampler instanceof DensityFunction df ? df : router.temperature();
+            
+            // 创建 vegetation CellSampler (使用 Cell 的 moisture 字段)
+            CellSampler.Marker vegMarker = new CellSampler.Marker(CellField.MOISTURE);
+            Object vegSampler = bridge.createCellSampler(vegMarker);
+            DensityFunction vegetation = vegSampler instanceof DensityFunction df ? df : router.vegetation();
+            
+            // 创建 continents CellSampler
+            CellSampler.Marker contMarker = new CellSampler.Marker(CellField.CONTINENTALNESS);
+            Object contSampler = bridge.createCellSampler(contMarker);
+            DensityFunction continents = contSampler instanceof DensityFunction df ? df : router.continents();
+            
+            // 创建 erosion CellSampler
+            CellSampler.Marker erosionMarker = new CellSampler.Marker(CellField.EROSION);
+            Object erosionSampler = bridge.createCellSampler(erosionMarker);
+            DensityFunction erosion = erosionSampler instanceof DensityFunction df ? df : router.erosion();
+            
+            // 创建 ridges CellSampler
+            CellSampler.Marker ridgesMarker = new CellSampler.Marker(CellField.WEIRDNESS);
+            Object ridgesSampler = bridge.createCellSampler(ridgesMarker);
+            DensityFunction ridges = ridgesSampler instanceof DensityFunction df ? df : router.ridges();
+            
+            System.out.println("[NekoTerraForged] Replacing NoiseRouter fields with CellSampler");
+            
+            return new NoiseRouter(
+                router.barrierNoise(),
+                router.fluidLevelFloodednessNoise(),
+                router.fluidLevelSpreadNoise(),
+                router.lavaNoise(),
+                temperature,
+                vegetation,
+                continents,
+                erosion,
+                router.depth(),
+                ridges,
+                router.preliminarySurfaceLevel(),
+                router.finalDensity(),
+                router.veinToggle(),
+                router.veinRidged(),
+                router.veinGap()
+            );
+        } catch (Exception e) {
+            System.err.println("[NekoTerraForged] Failed to replace climate fields: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return router;
     }
 
     /**
@@ -114,10 +164,11 @@ public class MixinRandomState {
     public void ntf$initialize(RegistryAccess registryAccess) {
         this.ntf$registryAccess = registryAccess;
         
-        if (this.ntf$hasContext) {
+        if (this.ntf$hasContext.get()) {
             RTFBridge bridge = RTFBridgeManager.INSTANCE.getBridge();
             if (bridge != null) {
                 bridge.initializeContext(registryAccess, this.ntf$seed);
+                System.out.println("[NekoTerraForged] GeneratorContext initialized for seed: " + this.ntf$seed);
             }
         }
     }
@@ -142,7 +193,7 @@ public class MixinRandomState {
     
     @Unique
     public boolean ntf$hasContext() {
-        return this.ntf$hasContext;
+        return this.ntf$hasContext.get();
     }
 
     /**

@@ -15,6 +15,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.SurfaceRules;
 
+import org.virgil698.NekoTerraForged.mixin.worldgen.surface.condition.NTFConstantCondition;
+
 /**
  * 注入 SurfaceRules.BiomeConditionSource 来支持周围生物群系检测
  * 在 Leaves 1.21.10 中，BiomeConditionSource 是 SurfaceRules 的内部类
@@ -47,8 +49,9 @@ public class MixinBiomeConditionSource {
         if (surroundingBiomes != null) {
             boolean result = surroundingBiomes.stream().anyMatch(this.biomeNameTest);
             // 如果没有匹配或只有一个生物群系，直接返回结果
+            // 使用独立的类文件代替 lambda，避免 Mixin 类加载问题
             if (!result || surroundingBiomes.size() == 1) {
-                cir.setReturnValue(() -> result);
+                cir.setReturnValue(NTFConstantCondition.of(result));
             }
         }
     }

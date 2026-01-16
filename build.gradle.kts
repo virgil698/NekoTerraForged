@@ -24,7 +24,7 @@ val pluginJson = leavesPluginJson {
     main = "org.virgil698.NekoTerraForged.NekoTerraForgedPlugin"
     authors.addAll(listOf("virgil698", "AnkiSama"))
     description = "NekoTerraForged - RTF terrain generation for Leaves"
-    foliaSupported = false
+    foliaSupported = true
     apiVersion = libs.versions.leavesApi.extractMCVersion()
     features.required.add("mixin")
     mixin.apply {

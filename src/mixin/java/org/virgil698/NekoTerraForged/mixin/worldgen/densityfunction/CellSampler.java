@@ -20,6 +20,9 @@ import java.util.function.Supplier;
 /**
  * Cell 采样器密度函数
  * 移植自 ReTerraForged
+ * 
+ * 注意：MC 的密度函数使用 quart 坐标（4 方块为单位），
+ * 但 RTF 的 Cell 系统使用方块坐标，需要正确转换
  */
 public class CellSampler implements DensityFunction {
     private static final ThreadLocal<Cache2d> LOCAL_CELL = ThreadLocal.withInitial(Cache2d::new);
@@ -54,7 +57,12 @@ public class CellSampler implements DensityFunction {
         if (worldLookup == null) {
             return 0.0;
         }
-        Cell cell = LOCAL_CELL.get().getAndUpdate(worldLookup, ctx.blockX(), ctx.blockZ());
+        
+        // ctx.blockX/Z 已经是方块坐标，直接使用
+        int blockX = ctx.blockX();
+        int blockZ = ctx.blockZ();
+        
+        Cell cell = LOCAL_CELL.get().getAndUpdate(worldLookup, blockX, blockZ);
         return this.field.read(cell);
     }
 
@@ -70,7 +78,7 @@ public class CellSampler implements DensityFunction {
 
     @Override
     public double minValue() {
-        return 0.0;
+        return -1.0;
     }
 
     @Override
@@ -84,19 +92,17 @@ public class CellSampler implements DensityFunction {
     }
 
     /**
-     * 2D 缓存
+     * 2D 缓存 - 使用方块坐标
      */
     public static class Cache2d {
         private long lastPos = Long.MAX_VALUE;
         private final Cell cell = new Cell();
 
         public Cell getAndUpdate(WorldLookup lookup, int blockX, int blockZ) {
-            blockX = QuartPos.toBlock(QuartPos.fromBlock(blockX));
-            blockZ = QuartPos.toBlock(QuartPos.fromBlock(blockZ));
-
             long packedPos = PosUtil.pack(blockX, blockZ);
             if (this.lastPos != packedPos) {
-                lookup.apply(this.cell.reset(), blockX, blockZ);
+                this.cell.reset();
+                lookup.apply(this.cell, blockX, blockZ);
                 this.lastPos = packedPos;
             }
             return this.cell;
@@ -118,8 +124,8 @@ public class CellSampler implements DensityFunction {
         private final Tile.Chunk chunk;
         @Nullable
         private final Cache2d cache2d;
-        private final int chunkX;  // 保留用于调试
-        private final int chunkZ;  // 保留用于调试
+        private final int chunkX;
+        private final int chunkZ;
 
         public CacheChunk(@Nullable Tile.Chunk chunk, @Nullable Cache2d cache2d, int chunkX, int chunkZ) {
             this.chunk = chunk;
@@ -136,7 +142,7 @@ public class CellSampler implements DensityFunction {
             // 如果有 Tile.Chunk 缓存，直接从中读取
             if (this.chunk != null) {
                 Cell cell = this.chunk.getCell(blockX, blockZ);
-                if (cell != null) {
+                if (cell != null && !cell.isAbsent()) {
                     return CellSampler.this.field.read(cell);
                 }
             }
@@ -208,7 +214,7 @@ public class CellSampler implements DensityFunction {
 
         @Override
         public double minValue() {
-            return 0.0;
+            return -1.0;
         }
 
         @Override

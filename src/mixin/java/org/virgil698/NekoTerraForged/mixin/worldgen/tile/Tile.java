@@ -42,10 +42,22 @@ public class Tile implements AutoCloseable {
         return this.z;
     }
 
+    /**
+     * 根据世界方块坐标查找 Cell
+     */
     public Cell lookup(int blockX, int blockZ) {
-        int border = this.blockSize.border();
-        int relBlockX = border + this.blockSize.mask(blockX);
-        int relBlockZ = border + this.blockSize.mask(blockZ);
+        // 计算相对于 Tile 起始位置的偏移
+        int tileStartBlockX = getBlockX() - (this.border << 4);
+        int tileStartBlockZ = getBlockZ() - (this.border << 4);
+        
+        int relBlockX = blockX - tileStartBlockX;
+        int relBlockZ = blockZ - tileStartBlockZ;
+        
+        if (relBlockX < 0 || relBlockX >= this.blockSize.total() ||
+            relBlockZ < 0 || relBlockZ >= this.blockSize.total()) {
+            return Cell.empty();
+        }
+        
         int index = this.blockSize.indexOf(relBlockX, relBlockZ);
         if (index < 0 || index >= this.cache.length) {
             return Cell.empty();
@@ -59,10 +71,17 @@ public class Tile implements AutoCloseable {
     }
 
     public Chunk getChunkReader(int chunkX, int chunkZ) {
-        int relChunkX = this.chunkSize.border() + this.chunkSize.mask(chunkX);
-        int relChunkZ = this.chunkSize.border() + this.chunkSize.mask(chunkZ);
+        // 计算相对于 Tile 的区块偏移
+        int relChunkX = chunkX - this.chunkX + this.border;
+        int relChunkZ = chunkZ - this.chunkZ + this.border;
+        
+        if (relChunkX < 0 || relChunkX >= this.chunkSize.total() ||
+            relChunkZ < 0 || relChunkZ >= this.chunkSize.total()) {
+            return new Chunk(relChunkX, relChunkZ);
+        }
+        
         int index = this.chunkSize.indexOf(relChunkX, relChunkZ);
-        return this.computeChunk(index, chunkX, chunkZ);
+        return this.computeChunk(index, relChunkX, relChunkZ);
     }
 
     public void iterate(Cell.Visitor visitor) {
@@ -170,14 +189,11 @@ public class Tile implements AutoCloseable {
             return this.blockZ;
         }
 
+        /**
+         * 根据世界方块坐标获取 Cell
+         */
         public Cell getCell(int blockX, int blockZ) {
-            int relX = this.regionBlockX + (blockX & 0xF);
-            int relZ = this.regionBlockZ + (blockZ & 0xF);
-            int index = Tile.this.blockSize.indexOf(relX, relZ);
-            if (index < 0 || index >= Tile.this.cache.length) {
-                return Cell.empty();
-            }
-            return Tile.this.cache[index];
+            return Tile.this.lookup(blockX, blockZ);
         }
 
         public static int clampToNearestCell(int height, int cellHeight) {

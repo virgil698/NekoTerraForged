@@ -7,11 +7,15 @@ import net.minecraft.util.StringRepresentable;
 /**
  * Cell 字段枚举，用于从 Cell 中读取特定字段
  * 移植自 ReTerraForged
+ * 
+ * 注意：MC 的密度函数值范围是 -1 到 1，而 RTF 的 Cell 值范围是 0 到 1
+ * 需要进行适当的映射转换
  */
 public enum CellField implements StringRepresentable {
     HEIGHT("height") {
         @Override
         public float read(Cell cell) {
+            // height 保持 0-1 范围
             return cell.height;
         }
     },
@@ -24,18 +28,26 @@ public enum CellField implements StringRepresentable {
     CONTINENTALNESS("continentalness") {
         @Override
         public float read(Cell cell) {
-            return cell.continentalness;
+            // MC 的 continentalness 范围是 -1.2 到 1.2
+            // RTF 的 continentalness 范围是 0 到 1
+            // 映射: 0 -> -1.2, 1 -> 1.2
+            return cell.continentalness * 2.4f - 1.2f;
         }
     },
     EROSION("erosion") {
         @Override
         public float read(Cell cell) {
-            return cell.erosion;
+            // MC 的 erosion 范围是 -1 到 1
+            // RTF 的 erosion 范围是 0 到 1
+            // 映射: 0 -> -1, 1 -> 1
+            return cell.erosion * 2.0f - 1.0f;
         }
     },
     WEIRDNESS("weirdness") {
         @Override
         public float read(Cell cell) {
+            // MC 的 weirdness/ridges 范围是 -1 到 1
+            // RTF 的 weirdness 范围是 -1 到 1 (已经是正确范围)
             return cell.weirdness;
         }
     },
@@ -72,12 +84,18 @@ public enum CellField implements StringRepresentable {
     TEMPERATURE("temperature") {
         @Override
         public float read(Cell cell) {
+            // MC 的 temperature 范围是 -1 到 1
+            // RTF 的 temperature 已经是 -1 到 1 范围 (来自 BiomeType.getTemperature -> Temperature.midpoint)
+            // 直接返回，不需要转换
             return cell.temperature;
         }
     },
     MOISTURE("moisture") {
         @Override
         public float read(Cell cell) {
+            // MC 的 vegetation/humidity 范围是 -1 到 1
+            // RTF 的 moisture 已经是 -1 到 1 范围 (来自 BiomeType.getMoisture -> Humidity.midpoint)
+            // 直接返回，不需要转换
             return cell.moisture;
         }
     },

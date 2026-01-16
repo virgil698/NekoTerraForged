@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "target": "@env(PREINIT)",
   "mixins": [
+    "MixinBuiltInRegistries",
     "MixinRandomState",
     "MixinNoiseBasedChunkGenerator",
     "MixinClimateSampler",

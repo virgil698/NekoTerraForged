@@ -9,9 +9,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridge;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridgeManager;
+import org.virgil698.NekoTerraForged.mixin.worldgen.NTFFluidPicker;
 
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ColumnPos;
@@ -21,7 +23,6 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.NoiseChunk;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.minecraft.world.level.levelgen.NoiseSettings;
 import net.minecraft.world.level.levelgen.RandomState;
 import net.minecraft.world.level.levelgen.blending.Blender;
@@ -34,6 +35,8 @@ import net.minecraft.world.level.levelgen.blending.Blender;
  *            NoiseGeneratorSettings noiseGeneratorSettings, Aquifer.FluidPicker fluidPicker, Blender blendifier)
  * 
  * 参考 ReTerraForged MixinNoiseChunk 实现
+ * 
+ * 注意：cellCountY 是 final 字段，在 Java 17+ 中不能从非 <init> 方法修改
  */
 @Mixin(NoiseChunk.class)
 public class MixinNoiseChunk {
@@ -73,6 +76,7 @@ public class MixinNoiseChunk {
     private int cellCountXZ;
 
     @Shadow
+    @Final
     private int cellCountY;
 
     @Shadow
@@ -80,21 +84,18 @@ public class MixinNoiseChunk {
     private int cellHeight;
 
     /**
-     * 重定向 RandomState.router() 调用来初始化 RTF 上下文
-     * 在构造函数中，router() 被调用来获取 NoiseRouter
+     * 在构造函数末尾注入来初始化 RTF 上下文
+     * 使用 @Inject 而不是 @Redirect 来避免 final 字段修改问题
      */
-    @Redirect(
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/world/level/levelgen/RandomState;router()Lnet/minecraft/world/level/levelgen/NoiseRouter;"
-        ),
-        method = "<init>"
+    @Inject(
+        method = "<init>",
+        at = @At("TAIL")
     )
-    private NoiseRouter ntf$onInit(RandomState randomState1, int cellCountXZ, RandomState randomState2, 
+    private void ntf$onInit(int cellCountXZ, RandomState randomState, 
             int minBlockX, int minBlockZ, NoiseSettings noiseSettings, 
             DensityFunctions.BeardifierOrMarker beardifierOrMarker, NoiseGeneratorSettings noiseGeneratorSettings,
-            Aquifer.FluidPicker fluidPicker, Blender blender) {
-        this.ntf$randomState = randomState1;
+            Aquifer.FluidPicker fluidPicker, Blender blender, CallbackInfo ci) {
+        this.ntf$randomState = randomState;
         this.ntf$chunkX = SectionPos.blockToSectionCoord(minBlockX);
         this.ntf$chunkZ = SectionPos.blockToSectionCoord(minBlockZ);
         this.ntf$generatorSettings = noiseGeneratorSettings;
@@ -104,12 +105,6 @@ public class MixinNoiseChunk {
             // 获取生成高度
             this.ntf$generationHeight = bridge.getGenerationHeight(this.ntf$chunkX, this.ntf$chunkZ, noiseGeneratorSettings);
             
-            // 调整 cellCountY
-            int maxCellCountY = this.ntf$generationHeight / this.cellHeight;
-            if (maxCellCountY < this.cellCountY) {
-                this.cellCountY = maxCellCountY;
-            }
-            
             // 创建缓存
             this.ntf$cache2d = bridge.createCache2d();
             
@@ -118,8 +113,6 @@ public class MixinNoiseChunk {
         } else {
             this.ntf$generationHeight = noiseSettings.height();
         }
-        
-        return this.ntf$randomState.router();
     }
 
     /**
@@ -143,12 +136,8 @@ public class MixinNoiseChunk {
                 Aquifer.FluidStatus lava = new Aquifer.FluidStatus(lavaLevel, Blocks.LAVA.defaultBlockState());
                 int seaLevel = noiseGeneratorSettings.seaLevel();
                 Aquifer.FluidStatus defaultFluid = new Aquifer.FluidStatus(seaLevel, noiseGeneratorSettings.defaultFluid());
-                return (x, y, z) -> {
-                    if (y < Math.min(lavaLevel, seaLevel)) {
-                        return lava;
-                    }
-                    return defaultFluid;
-                };
+                // 使用独立的类文件代替 lambda，避免 Mixin 类加载问题
+                return new NTFFluidPicker(lava, defaultFluid, lavaLevel, seaLevel);
             }
         }
         return fluidPicker;

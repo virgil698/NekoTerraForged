@@ -1,5 +1,7 @@
 package org.virgil698.NekoTerraForged.mixin.mixins;
 
+import java.lang.reflect.Method;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -9,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridge;
 import org.virgil698.NekoTerraForged.mixin.bridge.RTFBridgeManager;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.levelgen.RandomState;
@@ -48,6 +51,17 @@ public class MixinChunkMap {
             
             // 初始化上下文
             bridge.initializeContext(this.level.registryAccess(), this.level.getSeed());
+            
+            // 调用 RandomState 的 ntf$initialize 方法 (通过反射，因为 Mixin 在运行时添加)
+            try {
+                Method initMethod = this.randomState.getClass().getMethod("ntf$initialize", RegistryAccess.class);
+                initMethod.invoke(this.randomState, this.level.registryAccess());
+            } catch (NoSuchMethodException e) {
+                // 方法不存在，可能 Mixin 未应用
+                System.out.println("[NekoTerraForged] RandomState.ntf$initialize not found - Mixin may not be applied");
+            } catch (Exception e) {
+                System.err.println("[NekoTerraForged] Failed to call RandomState.ntf$initialize: " + e.getMessage());
+            }
         }
     }
 }

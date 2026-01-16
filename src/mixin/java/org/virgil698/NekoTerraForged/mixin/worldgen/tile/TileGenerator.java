@@ -31,24 +31,44 @@ public class TileGenerator {
         Tile tile = this.makeTile(tileX, tileZ);
         Heightmap hm = this.heightmap.get();
 
-        // 生成地形数据
+        // 计算 Tile 的起始方块坐标
+        int tileBlockX = tile.getBlockX();
+        int tileBlockZ = tile.getBlockZ();
+
+        // 生成地形数据 - 遍历整个 Tile 的方块
+        int totalBlocks = this.tileSizeBlocks.total();
+        Cell[] backing = tile.getBacking();
+        
+        for (int relZ = 0; relZ < totalBlocks; relZ++) {
+            int worldZ = tileBlockZ + relZ - (this.tileBorder << 4);
+            
+            for (int relX = 0; relX < totalBlocks; relX++) {
+                int worldX = tileBlockX + relX - (this.tileBorder << 4);
+                
+                int index = this.tileSizeBlocks.indexOf(relX, relZ);
+                if (index >= 0 && index < backing.length) {
+                    Cell cell = backing[index];
+                    cell.reset();
+                    
+                    // 应用地形生成
+                    hm.applyContinent(cell, worldX, worldZ);
+                    Rivermap rivers = hm.continent().getRivermap(cell);
+                    hm.applyTerrain(cell, worldX, worldZ, rivers);
+                    hm.applyClimate(cell, worldX, worldZ);
+                }
+            }
+        }
+
+        // 更新每个 Chunk 的最高点
         for (int cZ = 0; cZ < this.tileSizeChunks.total(); cZ++) {
             for (int cX = 0; cX < this.tileSizeChunks.total(); cX++) {
                 Chunk chunk = tile.getChunkWriter(cX, cZ);
-                Rivermap rivers = null;
-
                 for (int dz = 0; dz < 16; dz++) {
                     for (int dx = 0; dx < 16; dx++) {
-                        int worldX = chunk.getBlockX() + dx;
-                        int worldZ = chunk.getBlockZ() + dz;
-                        Cell cell = chunk.getCell(dx, dz);
-
-                        hm.applyContinent(cell, worldX, worldZ);
-                        rivers = Rivermap.get(cell, rivers, hm);
-                        hm.applyTerrain(cell, worldX, worldZ, rivers);
-                        hm.applyClimate(cell, worldX, worldZ);
-
-                        chunk.updateHighestPoint(cell);
+                        Cell cell = chunk.getCell(chunk.getBlockX() + dx, chunk.getBlockZ() + dz);
+                        if (cell != null && !cell.isAbsent()) {
+                            chunk.updateHighestPoint(cell);
+                        }
                     }
                 }
             }

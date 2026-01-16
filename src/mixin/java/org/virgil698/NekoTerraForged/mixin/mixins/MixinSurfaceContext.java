@@ -22,6 +22,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.SurfaceRules;
 
+import org.virgil698.NekoTerraForged.mixin.worldgen.biome.NTFBiomeConsumer;
 import org.virgil698.NekoTerraForged.mixin.worldgen.surface.RTFSurfaceContext;
 import org.virgil698.NekoTerraForged.mixin.worldgen.surface.SurfaceRegion;
 
@@ -50,15 +51,16 @@ public abstract class MixinSurfaceContext {
             ChunkPos centerPos = this.chunk.getPos();
 
             this.surroundingBiomes = new HashSet<>();
+            
+            // 使用独立的类文件代替 lambda，避免 Mixin 类加载问题
+            NTFBiomeConsumer consumer = new NTFBiomeConsumer(this.surroundingBiomes);
 
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
                     ChunkAccess chunk = region.getChunk(centerPos.x + x, centerPos.z + z);
 
                     for (LevelChunkSection section : chunk.getSections()) {
-                        section.getBiomes().getAll((biome) -> {
-                            biome.unwrapKey().ifPresent(this.surroundingBiomes::add);
-                        });
+                        section.getBiomes().getAll(consumer);
                     }
                 }
             }
