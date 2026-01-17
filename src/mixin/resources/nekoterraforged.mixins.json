@@ -6,19 +6,10 @@
   "target": "@env(PREINIT)",
   "mixins": [
     "MixinBuiltInRegistries",
-    "MixinRandomState",
-    "MixinNoiseBasedChunkGenerator",
-    "MixinClimateSampler",
+    "MixinNoiseRouter",
     "MixinMinecraftServer",
-    "MixinChunkMap",
-    "MixinNoiseChunk",
-    "MixinSurfaceContext",
-    "MixinSurfaceSystem",
-    "MixinBiomeConditionSource",
     "MixinStructure",
-    "MixinSpawnFinder",
-    "MixinChunkStatusTasks",
-    "MixinUtil"
+    "MixinClimate"
   ],
   "plugin": "org.virgil698.NekoTerraForged.mixin.NekoTerraForgedMixinConfigPlugin"
 }

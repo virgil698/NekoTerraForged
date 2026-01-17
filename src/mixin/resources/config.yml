@@ -1,0 +1,206 @@
+# NekoTerraForged 配置文件
+# 基于 Valley 模组的地形生成系统
+
+# 是否启用自定义地形生成
+enabled: true
+
+# 大陆生成配置
+continent:
+  # 大陆规模 (值越大，大陆越大)
+  scale: 1600
+  # FBM 噪声参数
+  fbm:
+    octaves: 2
+    lacunarity: 1.5
+    gain: 0.25
+  # 扭曲强度
+  warp:
+    strength: 0.00125
+    scale: 175.0
+    octaves: 3
+    lacunarity: 2.5
+    gain: 0.4
+  # 样条重映射点 (input -> output)
+  spline:
+    points:
+      - input: -1.0
+        output: -1.2
+      - input: -0.5
+        output: -0.3
+      - input: -0.3
+        output: -0.19
+      - input: 0.0
+        output: 0.0
+      - input: 1.0
+        output: 1.0
+
+# 河流系统配置
+river:
+  # 河流规模 (值越大，河流越稀疏)
+  scale: 300
+  # 海洋阈值 (低于此值的区域不生成河流)
+  ocean: -0.25
+  # 海岸阈值 (低于此值的区域视为海岸)
+  coast: -0.19
+  # 河流宽度样条 (falloff -> radius)
+  river_radius:
+    points:
+      - input: -0.19
+        output: 0.15
+      - input: 0.1
+        output: 0.1
+      - input: 1.0
+        output: 0.03
+  # 河谷宽度样条 (falloff -> radius)
+  valley_radius:
+    points:
+      - input: -0.19
+        output: 1.0
+      - input: 1.0
+        output: 0.8
+  # 河流输出样条 (distance -> value)
+  output:
+    points:
+      - input: 0.0
+        output: 1.0
+      - input: 0.85
+        output: 0.3
+      - input: 1.0
+        output: 0.0
+
+# 地形生成配置
+terrain:
+  # 海平面高度
+  sea_level: 63
+  # 最小高度
+  min_height: -64
+  # 最大高度
+  max_height: 320
+  # 地形高度范围
+  height_range:
+    # 海洋区域高度范围
+    ocean:
+      min: -64
+      max: 63
+    # 陆地区域高度范围
+    land:
+      min: 63
+      max: 250
+  # 地形类型高度调整
+  terrain_type_adjustments:
+    beach:
+      min_offset: -2
+      max_offset: 3
+    high_mountains:
+      height_bonus: 20
+    plateau:
+      height_bonus: 10
+
+# 噪声生成配置
+noise:
+  # 侵蚀噪声
+  erosion:
+    scale: 800
+    octaves: 3
+    lacunarity: 2.0
+    gain: 0.5
+  # 山峰山谷噪声
+  peaks_valleys:
+    scale: 400
+    octaves: 2
+    lacunarity: 2.0
+    gain: 0.5
+  # 温度噪声
+  temperature:
+    scale: 2000
+    octaves: 2
+    lacunarity: 2.0
+    gain: 0.5
+  # 湿度噪声
+  humidity:
+    scale: 2000
+    octaves: 2
+    lacunarity: 2.0
+    gain: 0.5
+
+# 缓存配置
+cache:
+  # 河流区域缓存大小
+  river_region_cache_size: 256
+  # 河流区域缓存并发级别
+  river_region_cache_concurrency: 16
+  # 线性缓存大小
+  linear_cache_size: 16
+
+# 性能配置
+performance:
+  # 是否启用多线程生成
+  multi_threading: true
+  # 是否启用缓存
+  enable_cache: true
+  # 是否启用调试日志
+  debug_logging: false
+
+# 生物群系映射配置
+biome:
+  # 是否启用自定义生物群系映射
+  enabled: true
+  # 温度阈值
+  temperature:
+    frozen: -0.5
+    cold: -0.2
+    temperate: 0.2
+    warm: 0.5
+  # 湿度阈值
+  humidity:
+    arid: -0.3
+    dry: -0.1
+    normal: 0.1
+    humid: 0.3
+
+# 表面装饰配置
+surface:
+  # 是否启用表面装饰
+  enabled: true
+  # 草方块深度
+  grass_depth: 1
+  # 泥土深度
+  dirt_depth: 3
+  # 沙子深度（沙滩）
+  sand_depth: 3
+  # 砂岩深度（沙滩）
+  sandstone_depth: 2
+
+# 洞穴生成配置
+caves:
+  # 是否启用自定义洞穴生成
+  enabled: false
+  # 洞穴密度
+  density: 0.3
+  # 洞穴规模
+  scale: 80
+  # 洞穴高度范围
+  height_range:
+    min: -64
+    max: 64
+
+# 矿石分布配置
+ores:
+  # 是否启用自定义矿石分布
+  enabled: false
+
+# 气候系统配置
+climate:
+  # 是否启用气候系统
+  enabled: true
+  # 气候规模
+  scale: 3000
+
+# 调试配置
+debug:
+  # 是否在控制台输出详细信息
+  verbose: false
+  # 是否显示地形生成统计
+  show_stats: false
+  # 是否在区块生成时输出日志
+  log_chunk_generation: false
